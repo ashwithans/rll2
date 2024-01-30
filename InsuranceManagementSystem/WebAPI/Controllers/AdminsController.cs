@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
 using DAL;
@@ -14,28 +9,33 @@ namespace WebAPI.Controllers
 {
     public class AdminsController : ApiController
     {
-        private InsuranceDbContext db = new InsuranceDbContext();
+        private InsuranceDbContext db;
 
-        
-        public IQueryable<Admin> GetAdmins()
+        public AdminsController()
         {
-            return db.Admins;
+            db = new InsuranceDbContext();
         }
 
-       
+        // GET: api/Admins
+        public IHttpActionResult GetAdmins()
+        {
+            var admins = db.Admins.ToList();
+            return Ok(admins);
+        }
+
+        // GET: api/Admins/5
         [ResponseType(typeof(Admin))]
         public IHttpActionResult GetAdmin(int id)
         {
-            Admin admin = db.Admins.Find(id);
+            var admin = db.Admins.Find(id);
             if (admin == null)
             {
                 return NotFound();
             }
-
             return Ok(admin);
         }
 
-        
+        // PUT: api/Admins/5
         [ResponseType(typeof(void))]
         public IHttpActionResult PutAdmin(int id, Admin admin)
         {
@@ -46,16 +46,16 @@ namespace WebAPI.Controllers
 
             if (id != admin.Id)
             {
-                return BadRequest();
+                return BadRequest("Invalid ID");
             }
 
-            db.Entry(admin).State = EntityState.Modified;
+            db.Entry(admin).State = System.Data.Entity.EntityState.Modified;
 
             try
             {
                 db.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception)
             {
                 if (!AdminExists(id))
                 {
@@ -70,7 +70,7 @@ namespace WebAPI.Controllers
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-       
+        // POST: api/Admins
         [ResponseType(typeof(Admin))]
         public IHttpActionResult PostAdmin(Admin admin)
         {
@@ -85,11 +85,11 @@ namespace WebAPI.Controllers
             return CreatedAtRoute("DefaultApi", new { id = admin.Id }, admin);
         }
 
-        
+        // DELETE: api/Admins/5
         [ResponseType(typeof(Admin))]
         public IHttpActionResult DeleteAdmin(int id)
         {
-            Admin admin = db.Admins.Find(id);
+            var admin = db.Admins.Find(id);
             if (admin == null)
             {
                 return NotFound();
@@ -112,7 +112,7 @@ namespace WebAPI.Controllers
 
         private bool AdminExists(int id)
         {
-            return db.Admins.Count(e => e.Id == id) > 0;
+            return db.Admins.Any(e => e.Id == id);
         }
     }
 }
